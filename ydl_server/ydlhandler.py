@@ -212,10 +212,13 @@ class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
+
     def handle_data(self, d):
         self.fed.append(d)
+
     def get_data(self):
         return ''.join(self.fed)
+
 
 def strip_tags(html):
     s = MLStripper()
@@ -225,15 +228,18 @@ def strip_tags(html):
 
 def twldownload(url, request_options, output, job_id):
     TWL_API_TOKEN = os.getenv("TWL_API_TOKEN", default="unset").strip()
-    assert TWL_API_TOKEN != "unset", "ERROR: TWL_API_TOKEN is not set in env"
+    assert TWL_API_TOKEN != "unset", "ERROR: TWL_API_TOKEN should be set in env (and is not)"
 
-    # relative English string will be parsed into a timedelata from now by PHP on the server side
-    LOOKBACK_STRING = os.getenv('LOOKBACK_STRING', default='-3days')
-    r = httpx.get(f"https://towatchlist.com/api/v1/marks?since={LOOKBACK_STRING}&uid={TWL_API_TOKEN}")
+    ydl_opts = ChainMap(os.environ, app_defaults)
+    lookbackStr = ydl_opts['TWL_LOOKBACK_TIME_STRING']
+    if request_options and 'format' in request_options and request_options['format'] is not None:
+        # use 'format' as 'TWL_LOOKBACK_TIME_STRING' here
+        lookbackStr = request_options['format']
+
+    r = httpx.get(f"https://towatchlist.com/api/v1/marks?since={lookbackStr}&uid={TWL_API_TOKEN}")
     r.raise_for_status()
     myMarks = r.json()['marks']
 
-    ydl_opts = ChainMap(os.environ, app_defaults)
     output_dir = Path(ydl_opts['YDL_OUTPUT_TEMPLATE']).parent
     with open(os.path.join(output_dir, '.twl.json'), 'w') as filehandle:
         json.dump(myMarks, filehandle)
