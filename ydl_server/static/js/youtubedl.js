@@ -182,8 +182,12 @@ function ydl_update(){
   $.get("api/youtube-dl/update");
 }
 
-function twl_download(){
-  $.get("api/twl/download");
+function twl_update(){
+  $.get("api/twl/update");
+}
+
+function kodi_update(){
+  $.get("api/kodi/update");
 }
 
 function hide_logs_detail(){

@@ -19,4 +19,7 @@ app_defaults = {
     'YDL_WRITE_NFO': False,
     # relative English string will be parsed into a timedelata from now by PHP on the server side
     'TWL_LOOKBACK_TIME_STRING': '-3days',
+    # Kodi URL for JSON RPC, is usually to something like 'http://192.168.0.1:8080/jsonrpc'
+    # see docs https://kodi.wiki/view/JSON-RPC_API#Enabling_JSON-RPC
+    'KODI_URL': None,
 }
