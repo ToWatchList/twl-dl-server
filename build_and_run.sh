@@ -21,10 +21,11 @@ docker run -d --name youtube-dl \
   --env TWL_API_TOKEN=`cat .TWL_Token` \
   --env TWL_LOOKBACK_TIME_STRING=-3min \
   --env YDL_WRITE_NFO=True \
+  --env KODI_URL='http://10.0.1.54:8080/jsonrpc' \
   twl-dl-server
 docker ps
 sleep 2
 
-curl "http://localhost:8080/api/twl/download?TWL_LOOKBACK_TIME_STRING=-5minutes"
-# curl "http://uzfs.local:8085/api/twl/download"
+curl "http://localhost:8080/api/twl/update?TWL_LOOKBACK_TIME_STRING=-5minutes"
+# curl "http://uzfs.local:8085/api/twl/update"
 open "http://localhost:8080/logs"

@@ -11,6 +11,7 @@ from pathlib import Path
 from ydl_server.logdb import JobsDB, Job, Actions, JobType
 from ydl_server import jobshandler, ydlhandler
 from ydl_server.config import app_defaults
+from kodijson import Kodi, PLAYER_VIDEO
 
 app = Bottle()
 
@@ -111,12 +112,30 @@ def ydl_update():
     return {"success": True}
 
 
-@app.route("/api/twl/download", method="GET")
-def twl_download():
+@app.route("/api/twl/update", method="GET")
+def twl_update():
     TWL_LOOKBACK_TIME_STRING = request.query.TWL_LOOKBACK_TIME_STRING or None
     job = Job("ToWatchList Update", Job.PENDING, "", JobType.TWL_DOWNLOAD, TWL_LOOKBACK_TIME_STRING, None)
     jobshandler.put((Actions.INSERT, job))
     return {"success": True, "TWL_LOOKBACK_TIME_STRING": TWL_LOOKBACK_TIME_STRING}
+
+
+@app.route("/api/kodi/update", method="GET")
+def kodi_update():
+    if 'KODI_URL' not in app_vars or not app_vars['KODI_URL']:
+        return {"success": False, "error": "KODI_URL not set (in environment)"}
+
+    kodi = Kodi(app_vars['KODI_URL'])
+    response = kodi.VideoLibrary.Scan()
+    # Ideal response: {'id': 1, 'jsonrpc': '2.0', 'result': 'OK'}
+
+    if False:
+        # TODO also clean library:
+        kodi.VideoLibrary.Clean()
+
+    if response['result'] == "OK":
+        return {"success": True}
+    return {"success": False, "error": "bad response from Kodi", "details": response}
 
 
 JobsDB.check_db_latest()

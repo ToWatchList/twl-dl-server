@@ -232,7 +232,7 @@ def twldownload(url, request_options, output, job_id):
 
     ydl_opts = ChainMap(os.environ, app_defaults)
     lookbackStr = ydl_opts['TWL_LOOKBACK_TIME_STRING']
-    if request_options and 'format' in request_options and request_options['format'] is not None:
+    if request_options and 'format' in request_options and request_options['format']:
         # use 'format' as 'TWL_LOOKBACK_TIME_STRING' here
         lookbackStr = request_options['format']
 
