@@ -26,6 +26,6 @@ docker run -d --name youtube-dl \
 docker ps
 sleep 2
 
-curl "http://localhost:8080/api/twl/update?TWL_LOOKBACK_TIME_STRING=-5hours"
+curl "http://localhost:8080/api/twl/update?TWL_LOOKBACK_TIME_STRING=-minutes"
 # curl "http://uzfs.local:8085/api/twl/update"
 open "http://localhost:8080/logs"
