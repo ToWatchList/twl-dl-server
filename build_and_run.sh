@@ -8,8 +8,8 @@ docker rm youtube-dl
 rm ./ytdl-test/*
 rm ./ytdl-test/.*
 
-docker build -t uzfs.local:5000/twl-dl-server -t twl-dl-server -t towatchlist/twl-dl-server .
-# docker push uzfs.local:5000/twl-dl-server
+docker build -t registry.local:5000/twl-dl-server -t twl-dl-server -t towatchlist/twl-dl-server .
+docker push registry.local:5000/twl-dl-server
 # docker push towatchlist/twl-dl-server
 
 # localPath='/Volumes/Video/Other/ToWatchList'
