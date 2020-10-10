@@ -123,6 +123,11 @@ def get_ydl_options(request_options):
         'cachedir': ydl_vars['YDL_CACHE_DIR']
     }
 
+    # TODO remove this temporary work around
+    cookiefile = '/youtube-dl/cookies.txt'
+    if os.path.isfile(cookiefile):
+        ydl_options['cookiefile'] = cookiefile
+
     ydl_options = {**ydl_vars['YDL_RAW_OPTIONS'], **ydl_options}
 
     if ydl_vars['YDL_SUBTITLES_LANGUAGES']:
