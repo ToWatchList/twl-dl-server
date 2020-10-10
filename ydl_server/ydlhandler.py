@@ -231,6 +231,13 @@ def strip_tags(html):
     return s.get_data()
 
 
+def listFilesFromID(video_id, output_dir=None):
+    if not output_dir:
+        ydl_opts = ChainMap(os.environ, app_defaults)
+        output_dir = Path(ydl_opts['YDL_OUTPUT_TEMPLATE']).parent
+    # TODO how could we be more selective here?
+    return glob.glob(os.path.join(output_dir, f"*{video_id}*"))
+
 def twldownload(url, request_options, output, job_id):
     TWL_API_TOKEN = os.getenv("TWL_API_TOKEN", default="unset").strip()
     assert TWL_API_TOKEN != "unset", "ERROR: TWL_API_TOKEN should be set in env (and is not)"
@@ -260,18 +267,24 @@ def twldownload(url, request_options, output, job_id):
         mmeta['channel_title'] = myMarks[i]['Mark']['channel_title']
         mmeta['duration'] = int(myMarks[i]['Mark']['duration']) / 60.0
         mmeta['created'] = myMarks[i]['Mark']['created']
-        try:
-            mmeta['description'] = strip_tags(myMarks[i]['Mark']['comment'])
-        except:
-            mmeta['description'] = '-Failed to parse-'
+
+        existingFiles = listFilesFromID(mmeta['video_id'], output_dir=output_dir)
 
         if (myMarks[i]['Mark']['watched']) or (myMarks[i]['Mark']['delflag']):
             # it's been marked as watched, delete the local copy
-            for filename in glob.glob(os.path.join(output_dir, f"*{mmeta['video_id']}*")):
-                # TODO we could remove more intellegently/selectively here ^
+            for filename in existingFiles:
                 os.remove(filename)
                 removedFiles += 1
             continue
+
+        if len(existingFiles) > 0:
+            # this file has probably already been downloaded, skip!
+            continue
+
+        try:  # a bit more parsing for Kodi
+            mmeta['description'] = strip_tags(myMarks[i]['Mark']['comment'])
+        except:
+            mmeta['description'] = '-Failed to parse-'
 
         downloadQueueAdd += 1
         job = Job(mmeta['title'],
