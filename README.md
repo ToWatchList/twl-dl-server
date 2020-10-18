@@ -4,17 +4,16 @@
 
 # twl-dl-server
 
-Simple Web and REST interface for downloading youtube videos onto a server. [`bottle`](https://github.com/bottlepy/bottle) + [`youtube-dl`](https://github.com/rg3/youtube-dl).
+Simple Web and REST interface for downloading youtube videos onto a server. [`bottle`](https://github.com/bottlepy/bottle) + [`youtube-dl`](https://github.com/rg3/youtube-dl). This TWL version adds integrations with [ToWatchList](https://towatchlist.com) and [Kodi](https://kodi.tv).
 
-Forked from [nbr23/youtube-dl-server](https://github.com/nbr23/youtube-dl-server).
-Which was previously forked from [manbearwiz/youtube-dl-server](https://github.com/manbearwiz/youtube-dl-server).
+This project is forked from [nbr23/youtube-dl-server](https://github.com/nbr23/youtube-dl-server), which was previously forked from [manbearwiz/youtube-dl-server](https://github.com/manbearwiz/youtube-dl-server).
 
 ![screenshot][1]
 ![screenshot][2]
 
 ## Running
 
-For easier deployment, a docker image is available on [dockerhub](https://hub.docker.com/r/nbr23/youtube-dl-server).
+For easier deployment, a docker image is available on [dockerhub](https://hub.docker.com/r/towatchlist/twl-dl-server).
 
 ### Docker CLI
 
@@ -93,6 +92,20 @@ fetch(`http://${host}:8080/api/downloads`, {
 });
 ```
 
+### Integration with ToWatchList
+
+Add your account's API key from [ToWatchList Tools](https://towatchlist.com/tools) to the Docker's environment variables via the command line (or the Docker Compose). For example the command line could be:
+
+```shell
+docker run -d --name youtube-dl -v --env TWL_API_TOKEN=`${apitoken}` $HOME/youtube-dl:/youtube-dl towatchlist/twl-dl-server
+```
+
+You can trigger an update from TWL via a curl command, this can be added to external cron scripts too.
+
+```shell
+curl http://{{host}}:8080/api/twl/update
+```
+
 #### Bookmarklet
 
 Add the following bookmarklet to your bookmark bar so you can conviently send the current page url to your youtube-dl-server instance.
@@ -118,5 +131,5 @@ The server uses [`bottle`](https://github.com/bottlepy/bottle) for the web frame
 
 This docker image is based on [`python:alpine`](https://registry.hub.docker.com/_/python/) and consequently [`alpine:3.8`](https://hub.docker.com/_/alpine/).
 
-[1]:youtube-dl-server.png
-[2]:youtube-dl-server-logs.png
+[1]:https://github.com/ToWatchList/twl-dl-server/raw/main/youtube-dl-server.png
+[2]:https://github.com/ToWatchList/twl-dl-server/raw/main/youtube-dl-server-logs.png
