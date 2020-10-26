@@ -260,6 +260,11 @@ def twldownload(url, request_options, output, job_id):
 
     downloadQueueAdd = 0
     removedFiles = 0
+    if 'YDL_WRITE_NFO' in ydl_opts and ydl_opts['YDL_WRITE_NFO']:
+        targetNumberOfFiles = 2
+    else:
+        targetNumberOfFiles = 1
+
     for i in range(len(myMarks)):
         # set some values we'll use below
         mmeta = {}  # mark metadata dict
@@ -279,7 +284,7 @@ def twldownload(url, request_options, output, job_id):
                 removedFiles += 1
             continue
 
-        if len(existingFiles) > 0:
+        if len(existingFiles) >= targetNumberOfFiles:
             # this file has probably already been downloaded, skip!
             continue
 
