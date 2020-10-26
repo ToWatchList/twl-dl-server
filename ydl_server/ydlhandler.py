@@ -238,6 +238,7 @@ def listFilesFromID(video_id, output_dir=None):
     # TODO how could we be more selective here?
     return glob.glob(os.path.join(output_dir, f"*{video_id}*"))
 
+
 def twldownload(url, request_options, output, job_id):
     TWL_API_TOKEN = os.getenv("TWL_API_TOKEN", default="unset").strip()
     assert TWL_API_TOKEN != "unset", "ERROR: TWL_API_TOKEN should be set in env (and is not)"
