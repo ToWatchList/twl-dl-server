@@ -236,8 +236,21 @@ def listFilesFromID(video_id, output_dir=None):
     if not output_dir:
         ydl_opts = ChainMap(os.environ, app_defaults)
         output_dir = Path(ydl_opts['YDL_OUTPUT_TEMPLATE']).parent
-    # TODO how could we be more selective here?
-    return glob.glob(os.path.join(output_dir, f"*{video_id}*"))
+
+    # TODO how could we be more selective here using these known extensions
+    # videoExtensions = ['avi', 'webm', 'ogg', 'mkv', 'mp4', 'm4v', 'flv', 'mov']
+    # audioExtensions = ['aac', 'flac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']
+    # mediaExtensions = videoExtensions + audioExtensions
+    # metadataExtensions = ['part', 'nfo']
+
+    filteredMatches = []
+    for filematch in glob.glob(os.path.join(output_dir, f"*{video_id}*")):
+        if filematch.lower().endswith('.part'):
+            # This is an incomplete download, delete it
+            os.remove(filematch)
+            continue
+        filteredMatches.add(filematch)
+    return filteredMatches
 
 
 def twldownload(url, request_options, output, job_id):
