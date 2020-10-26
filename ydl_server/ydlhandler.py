@@ -174,6 +174,11 @@ def download(url, request_options, output, job_id):
             vidpath = Path(ydl.prepare_filename(info))
             nfopath = os.path.join(vidpath.parent, f"{vidpath.stem}.nfo")
             if not os.path.isfile(nfopath):
+                # info['upload_date'] is usually a YYYYMMDD eg 20200906
+                year = str(info['upload_date'])[:4]
+                month = str(info['upload_date'])[4:6]
+                day = str(info['upload_date'])[6:]
+
                 with open(nfopath, "w") as nfoF:
                     # json.dump(info, nfoF)
                     # nfoF.write(f"{info['title']}\n")
@@ -192,18 +197,14 @@ def download(url, request_options, output, job_id):
                         nfoF.write("  <showtitle>Unknown Channel</showtitle>\n")
 
                     if 'description' in info and info['description']:
-                        nfoF.write(f"  <plot>{info['description']}</plot>\n")
+                        nfoF.write(f"  <plot>{info['description']}\n\nUpload Date: {info['upload_date']}</plot>\n")
                     else:
-                        nfoF.write("  <plot>Unknown Plot</plot>\n")
+                        nfoF.write(f"  <plot>Upload Date: {info['upload_date']}</plot>\n")
 
                     nfoF.write(f"  <runtime>{round(info['duration']/60.0)}</runtime>\n")
                     nfoF.write(f"  <thumb>{info['thumbnail']}</thumb>\n")
                     nfoF.write(f"  <videourl>{url}</videourl>\n")
-                    # upload date is a dumb datestring eg 20200929 = 2020-09-29
-                    nfoF.write(f"  <aired>{info['upload_date'][:4]}-"
-                               "{info['upload_date'][4:6]}-"
-                               "{info['upload_date'][6:]}</aired>\n")
-
+                    nfoF.write(f"  <aired>{year}-{month}-{day}</aired>\n")
                     nfoF.write("</musicvideo>\n")
 
         # Swap out sys.stdout as ydl's output so we can capture it
