@@ -174,6 +174,11 @@ def download(url, request_options, output, job_id):
             vidpath = Path(ydl.prepare_filename(info))
             nfopath = os.path.join(vidpath.parent, f"{vidpath.stem}.nfo")
             if not os.path.isfile(nfopath):
+                # info['upload_date'] is usually a YYYYMMDD eg 20200906
+                year = str(info['upload_date'])[:4]
+                month = str(info['upload_date'])[4:6]
+                day = str(info['upload_date'])[6:]
+
                 with open(nfopath, "w") as nfoF:
                     # json.dump(info, nfoF)
                     # nfoF.write(f"{info['title']}\n")
@@ -192,18 +197,14 @@ def download(url, request_options, output, job_id):
                         nfoF.write("  <showtitle>Unknown Channel</showtitle>\n")
 
                     if 'description' in info and info['description']:
-                        nfoF.write(f"  <plot>{info['description']}</plot>\n")
+                        nfoF.write(f"  <plot>{info['description']}\n\nUpload Date: {info['upload_date']}</plot>\n")
                     else:
-                        nfoF.write("  <plot>Unknown Plot</plot>\n")
+                        nfoF.write(f"  <plot>Upload Date: {info['upload_date']}</plot>\n")
 
                     nfoF.write(f"  <runtime>{round(info['duration']/60.0)}</runtime>\n")
                     nfoF.write(f"  <thumb>{info['thumbnail']}</thumb>\n")
                     nfoF.write(f"  <videourl>{url}</videourl>\n")
-                    # upload date is a dumb datestring eg 20200929 = 2020-09-29
-                    nfoF.write(f"  <aired>{info['upload_date'][:4]}-"
-                               "{info['upload_date'][4:6]}-"
-                               "{info['upload_date'][6:]}</aired>\n")
-
+                    nfoF.write(f"  <aired>{year}-{month}-{day}</aired>\n")
                     nfoF.write("</musicvideo>\n")
 
         # Swap out sys.stdout as ydl's output so we can capture it
@@ -235,8 +236,22 @@ def listFilesFromID(video_id, output_dir=None):
     if not output_dir:
         ydl_opts = ChainMap(os.environ, app_defaults)
         output_dir = Path(ydl_opts['YDL_OUTPUT_TEMPLATE']).parent
-    # TODO how could we be more selective here?
-    return glob.glob(os.path.join(output_dir, f"*{video_id}*"))
+
+    # TODO how could we be more selective here using these known extensions
+    # videoExtensions = ['avi', 'webm', 'ogg', 'mkv', 'mp4', 'm4v', 'flv', 'mov']
+    # audioExtensions = ['aac', 'flac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']
+    # mediaExtensions = videoExtensions + audioExtensions
+    # metadataExtensions = ['part', 'nfo']
+
+    filteredMatches = []
+    for filematch in glob.glob(os.path.join(output_dir, f"*{video_id}*")):
+        if filematch.lower().endswith('.part'):
+            # This is an incomplete download, delete it
+            os.remove(filematch)
+            continue
+        filteredMatches.add(filematch)
+    return filteredMatches
+
 
 def twldownload(url, request_options, output, job_id):
     TWL_API_TOKEN = os.getenv("TWL_API_TOKEN", default="unset").strip()
@@ -258,6 +273,11 @@ def twldownload(url, request_options, output, job_id):
 
     downloadQueueAdd = 0
     removedFiles = 0
+    if 'YDL_WRITE_NFO' in ydl_opts and ydl_opts['YDL_WRITE_NFO']:
+        targetNumberOfFiles = 2
+    else:
+        targetNumberOfFiles = 1
+
     for i in range(len(myMarks)):
         # set some values we'll use below
         mmeta = {}  # mark metadata dict
@@ -277,7 +297,7 @@ def twldownload(url, request_options, output, job_id):
                 removedFiles += 1
             continue
 
-        if len(existingFiles) > 0:
+        if len(existingFiles) >= targetNumberOfFiles:
             # this file has probably already been downloaded, skip!
             continue
 
