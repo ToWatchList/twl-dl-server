@@ -252,7 +252,7 @@ def listFilesFromID(video_id, output_dir=None):
             # This is an incomplete download, delete it
             os.remove(filematch)
             continue
-        filteredMatches.add(filematch)
+        filteredMatches.append(filematch)
     return filteredMatches
 
 
