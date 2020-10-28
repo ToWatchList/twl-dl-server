@@ -20,6 +20,8 @@ For easier deployment, a docker image is available on [dockerhub](https://hub.do
 
 The `latest` image now uses youtube-dlc. For the original youtube-dl based image, use `nbr23/youtube-dl-server:youtube-dl`
 
+The `latest` image now uses youtube-dlc. For the original youtube-dl based image, use `nbr23/youtube-dl-server:youtube-dl`
+
 ### Docker CLI
 
 This example uses the docker run command to create the container to run the app. Note the `-v` argument to specify the volume and its binding on the host. This directory will be used to output the resulting videos.
