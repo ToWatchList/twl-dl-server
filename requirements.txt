@@ -1,4 +1,4 @@
 bottle
-youtube-dl
+youtube-dlc
 kodi-json
 httpx
