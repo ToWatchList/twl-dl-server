@@ -14,7 +14,7 @@ app_defaults = {
     'YDL_DEBUG': False,
     'YDL_RAW_OPTIONS': {
         'ignoreerrors': True,
-        'writethumbnail': True
+        # 'writethumbnail': True
         },
     # should we write NFO files adacent to the downloaded movies, used to pass Metadata to Kodi etc
     'YDL_WRITE_NFO': False,
