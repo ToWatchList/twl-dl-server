@@ -205,7 +205,10 @@ def download(url, request_options, output, job_id):
                         nfoF.write(f"  <plot>Upload Date: {info['upload_date']}</plot>\n")
 
                     nfoF.write(f"  <runtime>{round(info['duration']/60.0)}</runtime>\n")
-                    nfoF.write(f"  <thumb>{vidpath.stem}.jpg</thumb>\n")
+                    # split the thumbnail URL and get the filename extension, may be jpg or webp
+                    # nfoF.write(f"  <thumb>{vidpath.stem}.{info['thumbnail'].split('.')[-1]}</thumb>\n")
+                    # alternately just link to the original URL, doesn't work with Jellyfin, does work with Kodi
+                    nfoF.write(f"  <thumb>{info['thumbnail']}</thumb>\n")
                     nfoF.write(f"  <videourl>{url}</videourl>\n")
                     nfoF.write(f"  <aired>{year}-{month}-{day}</aired>\n")
                     nfoF.write("</musicvideo>\n")
