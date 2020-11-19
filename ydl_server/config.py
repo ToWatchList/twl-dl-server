@@ -13,7 +13,8 @@ app_defaults = {
     'YDL_SUBTITLES_LANGUAGES': None,
     'YDL_DEBUG': False,
     'YDL_RAW_OPTIONS': {
-        'ignoreerrors': True
+        'ignoreerrors': True,
+        # 'writethumbnail': True
         },
     # should we write NFO files adacent to the downloaded movies, used to pass Metadata to Kodi etc
     'YDL_WRITE_NFO': False,
