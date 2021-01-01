@@ -5,8 +5,8 @@ set -x
 # stop exiting docker containers
 docker kill youtube-dl
 docker rm youtube-dl
-rm ./ytdl-test/*
-rm ./ytdl-test/.*
+rm  -rf ./ytdl-test/*
+rm -rf ./ytdl-test/.*
 
 docker build -t registry.local:5000/twl-dl-server -t twl-dl-server -t towatchlist/twl-dl-server .
 docker push registry.local:5000/twl-dl-server
