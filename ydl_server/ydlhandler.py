@@ -177,41 +177,44 @@ def download(url, request_options, output, job_id):
             vidpath = Path(ydl.prepare_filename(info))
             nfopath = os.path.join(vidpath.parent, f"{vidpath.stem}.nfo")
             if not os.path.isfile(nfopath):
-                # info['upload_date'] is usually a YYYYMMDD eg 20200906
-                year = str(info['upload_date'])[:4]
-                month = str(info['upload_date'])[4:6]
-                day = str(info['upload_date'])[6:]
+                if 'upload_date' in info:
+                    # info['upload_date'] is usually a YYYYMMDD eg 20200906
+                    year = str(info['upload_date'])[:4]
+                    month = str(info['upload_date'])[4:6]
+                    day = str(info['upload_date'])[6:]
 
-                with open(nfopath, "w") as nfoF:
-                    # json.dump(info, nfoF)
-                    # nfoF.write(f"{info['title']}\n")
-                    # nfoF.write(f"{ydl.prepare_filename(info)}.nfo\n")
+                    with open(nfopath, "w") as nfoF:
+                        # json.dump(info, nfoF)
+                        # nfoF.write(f"{info['title']}\n")
+                        # nfoF.write(f"{ydl.prepare_filename(info)}.nfo\n")
 
-                    nfoF.write("<musicvideo>\n")
+                        nfoF.write("<musicvideo>\n")
 
-                    if 'title' in info and info['title']:
-                        nfoF.write(f"  <title>{info['title']}</title>\n")
-                    else:
-                        nfoF.write("  <title>Unknown Title</title>\n")
+                        if 'title' in info and info['title']:
+                            nfoF.write(f"  <title>{info['title']}</title>\n")
+                        else:
+                            nfoF.write("  <title>Unknown Title</title>\n")
 
-                    if 'uploader_id' in info and info['uploader_id']:
-                        nfoF.write(f"  <showtitle>{info['uploader']}</showtitle>\n")
-                    else:
-                        nfoF.write("  <showtitle>Unknown Channel</showtitle>\n")
+                        if 'uploader_id' in info and info['uploader_id']:
+                            nfoF.write(f"  <showtitle>{info['uploader']}</showtitle>\n")
+                        else:
+                            nfoF.write("  <showtitle>Unknown Channel</showtitle>\n")
 
-                    if 'description' in info and info['description']:
-                        nfoF.write(f"  <plot>{info['description']}\n\nUpload Date: {info['upload_date']}</plot>\n")
-                    else:
-                        nfoF.write(f"  <plot>Upload Date: {info['upload_date']}</plot>\n")
+                        if 'description' in info and info['description']:
+                            nfoF.write(f"  <plot>{info['description']}\n\nUpload Date: {info['upload_date']}</plot>\n")
+                        else:
+                            nfoF.write(f"  <plot>Upload Date: {info['upload_date']}</plot>\n")
 
-                    nfoF.write(f"  <runtime>{round(info['duration']/60.0)}</runtime>\n")
-                    # split the thumbnail URL and get the filename extension, may be jpg or webp
-                    # nfoF.write(f"  <thumb>{vidpath.stem}.{info['thumbnail'].split('.')[-1]}</thumb>\n")
-                    # alternately just link to the original URL, doesn't work with Jellyfin, does work with Kodi
-                    nfoF.write(f"  <thumb>{info['thumbnail']}</thumb>\n")
-                    nfoF.write(f"  <videourl>{url}</videourl>\n")
-                    nfoF.write(f"  <aired>{year}-{month}-{day}</aired>\n")
-                    nfoF.write("</musicvideo>\n")
+                        nfoF.write(f"  <runtime>{round(info['duration']/60.0)}</runtime>\n")
+                        # split the thumbnail URL and get the filename extension, may be jpg or webp
+                        # nfoF.write(f"  <thumb>{vidpath.stem}.{info['thumbnail'].split('.')[-1]}</thumb>\n")
+                        # alternately just link to the original URL, doesn't work with Jellyfin, does work with Kodi
+                        nfoF.write(f"  <thumb>{info['thumbnail']}</thumb>\n")
+                        nfoF.write(f"  <videourl>{url}</videourl>\n")
+                        nfoF.write(f"  <aired>{year}-{month}-{day}</aired>\n")
+                        nfoF.write("</musicvideo>\n")
+                else:  # no upload date - this could be a playlist instead of a video
+                    pass
 
         # Swap out sys.stdout as ydl's output so we can capture it
         ydl._screen_file = output
