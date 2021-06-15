@@ -4,10 +4,7 @@
 
 # twl-dl-server
 
-Simple Web and REST interface for downloading youtube videos onto a server. [`bottle`](https://github.com/bottlepy/bottle) + [`youtube-dl`](https://github.com/rg3/youtube-dl) /  / [`youtube-dlc`](https://github.com/blackjack4494/yt-dlc). This TWL version adds integrations with [ToWatchList](https://towatchlist.com) and [Kodi](https://kodi.tv).
-
-*Note:* The main branch and docker image are now using youtube-dlc, the development of which is more active. To use the original youtube-dl, use nbr23's [youtube-dl](https://github.com/nbr23/youtube-dl-server/tree/youtube-dl) branch.
-
+Simple Web and REST interface for downloading youtube videos onto a server. [`bottle`](https://github.com/bottlepy/bottle) + [`youtube-dl`](https://github.com/rg3/youtube-dl) /  / [`youtube-dl`](https://github.com/ytdl-org/youtube-dl). This TWL version adds integrations with [ToWatchList](https://towatchlist.com) and [Kodi](https://kodi.tv).
 
 This project is forked from [nbr23/youtube-dl-server](https://github.com/nbr23/youtube-dl-server), which was previously forked from [manbearwiz/youtube-dl-server](https://github.com/manbearwiz/youtube-dl-server).
 
@@ -18,7 +15,7 @@ This project is forked from [nbr23/youtube-dl-server](https://github.com/nbr23/y
 
 For easier deployment, a docker image is available on [dockerhub](https://hub.docker.com/r/towatchlist/twl-dl-server).
 
-The `latest` image now uses youtube-dlc. For the original youtube-dl based image, use `nbr23/youtube-dl-server:youtube-dl`
+The `latest` image now uses youtube-dl. For the original youtube-dl based image, use `nbr23/youtube-dl-server:youtube-dl`
 
 ### Docker CLI
 
@@ -40,7 +37,7 @@ This is an example service definition that could be put in `docker-compose.yml`.
     restart: always
 ```
 
-The `latest` image now uses youtube-dlc. For the original youtube-dl based image, use `nbr23/youtube-dl-server:youtube-dl`
+The `latest` image now uses youtube-dl. For the original youtube-dl based image, use `nbr23/youtube-dl-server:youtube-dl`
 
 #### Configuration
 For easier configuration management and edition, you can save your variables in an external file and source them in your docker-compose.yml like the following example.
