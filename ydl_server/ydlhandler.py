@@ -5,7 +5,7 @@ import subprocess
 from collections import ChainMap
 import io
 import importlib
-import youtube_dlc
+import youtube_dl
 import json
 import httpx
 import glob
@@ -77,9 +77,9 @@ def reload_youtube_dl():
 
 def update():
     if os.environ.get('YDL_PYTHONPATH'):
-        command = ["pip", "install", "--no-cache-dir", "-t", os.environ.get('YDL_PYTHONPATH'), "--upgrade", "youtube-dlc"]
+        command = ["pip", "install", "--no-cache-dir", "-t", os.environ.get('YDL_PYTHONPATH'), "--upgrade", "youtube-dl"]
     else:
-        command = ["pip", "install", "--no-cache-dir", "--upgrade", "youtube-dlc"]
+        command = ["pip", "install", "--no-cache-dir", "--upgrade", "youtube-dl"]
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
     if proc.returncode == 0:
@@ -153,12 +153,12 @@ def fetch_metadata(url):
     stdout = io.StringIO()
     stderr = io.StringIO()
     info = None
-    with youtube_dlc.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
+    with youtube_dl.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
         ydl.params['extract_flat'] = 'in_playlist'
         return ydl.extract_info(url, download=False)
 
 def download(url, request_options, output, job_id):
-    with youtube_dlc.YoutubeDL(get_ydl_options(request_options)) as ydl:
+    with youtube_dl.YoutubeDL(get_ydl_options(request_options)) as ydl:
         ydl.params['extract_flat'] = 'in_playlist'
         ydl_opts = ChainMap(os.environ, app_defaults)
         info = ydl.extract_info(url, download=False)
@@ -349,4 +349,4 @@ def join():
         return thread.join()
 
 def get_ydl_version():
-    return youtube_dlc.version.__version__
+    return youtube_dl.version.__version__
