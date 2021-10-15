@@ -1,6 +1,5 @@
 #!/bin/sh
 # test script, not for production use
-set -x
 
 # stop exiting docker containers
 docker kill youtube-dl
@@ -8,14 +7,17 @@ docker rm youtube-dl
 rm -rf ./ytdl-test/*
 rm -rf ./ytdl-test/.*
 
-# multi arch build and push to local registry
-docker buildx build \
-  --output=type=registry,registry.insecure=true \
-  --platform linux/arm64/v8,linux/amd64 \
-  -t registry.local:5000/twl-dl-server \
-  .
+set -xe
 
-docker pull registry.local:5000/twl-dl-server
+# multi arch build and push to local registry
+# docker buildx build \
+#   --output=type=registry,registry.insecure=true \
+#   --platform linux/arm64,linux/amd64 \
+#   -t registry.local:5000/twl-dl-server \
+#   .
+# docker pull registry.local:5000/twl-dl-server
+
+docker build -t registry.local:5000/twl-dl-server .
 
 # localPath='/Volumes/Video/Other/ToWatchList'
 localPath='/Users/nick/Documents/ToWatchList/twl-dl-server/ytdl-test'
@@ -31,7 +33,7 @@ docker run -d --name youtube-dl \
 docker ps
 sleep 2
 
-curl "http://localhost:8080/api/twl/update?TWL_LOOKBACK_TIME_STRING=-1days"
+curl "http://localhost:8080/api/twl/update?TWL_LOOKBACK_TIME_STRING=-30minutes"
 # curl "http://uzfs.local:8085/api/twl/update"
 open "http://localhost:8080/logs"
 
@@ -40,6 +42,6 @@ exit
 # push to DockerHub registry
 docker buildx build \
   --push \
-  --platform linux/arm64/v8,linux/amd64 \
+  --platform linux/arm64,linux/amd64 \
   -t towatchlist/twl-dl-server \
   .
