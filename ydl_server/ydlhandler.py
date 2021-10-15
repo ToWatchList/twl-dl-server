@@ -5,7 +5,7 @@ import subprocess
 from collections import ChainMap
 import io
 import importlib
-import youtube_dl
+import yt_dlp
 import json
 import httpx
 import glob
@@ -70,21 +70,27 @@ def worker():
         jobshandler.put((Actions.UPDATE, job))
         queue.task_done()
 
+
 def reload_youtube_dl():
     for module in list(sys.modules.keys()):
-        if 'youtube' in module:
+        if 'youtube' in module or 'yt_dlp' in module:
             importlib.reload(sys.modules[module])
+
 
 def update():
     if os.environ.get('YDL_PYTHONPATH'):
-        command = ["pip", "install", "--no-cache-dir", "-t", os.environ.get('YDL_PYTHONPATH'), "--upgrade", "youtube-dl"]
+        command = ["pip", "install", "--no-cache-dir",
+                   "-t", os.environ.get('YDL_PYTHONPATH'),
+                   "--upgrade", os.environ.get('YOUTUBE_DL')]
     else:
-        command = ["pip", "install", "--no-cache-dir", "--upgrade", "youtube-dl"]
+        command = ["pip", "install", "--no-cache-dir", "--upgrade", os.environ.get('YOUTUBE_DL')]
+
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
-    if proc.returncode == 0:
+    if proc.wait() == 0:
         reload_youtube_dl()
     return proc.returncode, str(out.decode('utf-8'))
+
 
 def get_ydl_options(request_options):
     request_vars = {
@@ -153,12 +159,12 @@ def fetch_metadata(url):
     stdout = io.StringIO()
     stderr = io.StringIO()
     info = None
-    with youtube_dl.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
+    with yt_dlp.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
         ydl.params['extract_flat'] = 'in_playlist'
         return ydl.extract_info(url, download=False)
 
 def download(url, request_options, output, job_id):
-    with youtube_dl.YoutubeDL(get_ydl_options(request_options)) as ydl:
+    with yt_dlp.YoutubeDL(get_ydl_options(request_options)) as ydl:
         ydl.params['extract_flat'] = 'in_playlist'
         ydl_opts = ChainMap(os.environ, app_defaults)
         info = ydl.extract_info(url, download=False)
@@ -209,7 +215,7 @@ def download(url, request_options, output, job_id):
                         # split the thumbnail URL and get the filename extension, may be jpg or webp
                         # nfoF.write(f"  <thumb>{vidpath.stem}.{info['thumbnail'].split('.')[-1]}</thumb>\n")
                         # alternately just link to the original URL, doesn't work with Jellyfin, does work with Kodi
-                        nfoF.write(f"  <thumb>{info['thumbnail']}</thumb>\n")
+                        nfoF.write(f"  <thumb aspect=\"thumb\">{info['thumbnail']}</thumb>\n")
                         nfoF.write(f"  <videourl>{url}</videourl>\n")
                         nfoF.write(f"  <aired>{year}-{month}-{day}</aired>\n")
                         nfoF.write("</musicvideo>\n")
@@ -349,4 +355,4 @@ def join():
         return thread.join()
 
 def get_ydl_version():
-    return youtube_dl.version.__version__
+    return yt_dlp.version.__version__
