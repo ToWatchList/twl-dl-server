@@ -4,7 +4,7 @@
 # stop exiting docker containers
 docker kill youtube-dl
 docker rm youtube-dl
-rm -rf ./ytdl-test/*
+rm  -rf ./ytdl-test/*
 rm -rf ./ytdl-test/.*
 
 set -xe
