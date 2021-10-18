@@ -1,7 +1,7 @@
 app_defaults = {
     'YDL_FORMAT': 'bestvideo[vcodec!^=av01]+bestaudio/best',
     'YDL_EXTRACT_AUDIO_FORMAT': None,
-    'YDL_EXTRACT_AUDIO_QUALITY': '192',
+    'YDL_EXTRACT_AUDIO_QUALITY': None,
     'YDL_RECODE_VIDEO_FORMAT': None,
     'YDL_OUTPUT_TEMPLATE': '/youtube-dl/%(title)s [%(id)s].%(ext)s',
     'YDL_OUTPUT_TEMPLATE_PLAYLIST': '/youtube-dl/%(playlist_title)s/%(title)s [%(id)s].%(ext)s',
@@ -12,8 +12,11 @@ app_defaults = {
     'YDL_DB_PATH': '/youtube-dl/.ydl-metadata.db',
     'YDL_SUBTITLES_LANGUAGES': None,
     'YDL_DEBUG': False,
+    'SPONSORBLOCK_MARK': True,
+    'SPONSORBLOCK_CATEGORIES': ["outro", "selfpromo", "preview", "interaction", "sponsor", "music_offtopic", "intro"],
     'YDL_RAW_OPTIONS': {
         'ignoreerrors': True,
+        # 'verbose': True,
         # 'writethumbnail': True
         },
     # should we write NFO files adacent to the downloaded movies, used to pass Metadata to Kodi etc

@@ -111,6 +111,26 @@ def get_ydl_options(request_options):
 
     postprocessors = []
 
+    if(ydl_vars['SPONSORBLOCK_MARK']):
+        postprocessors.append({
+            'key': 'SponsorBlock',
+            'categories': ydl_vars['SPONSORBLOCK_CATEGORIES'],
+            # Run this immediately after extraction is complete
+            'when': 'pre_process'
+        })
+        postprocessors.append({
+            'key': 'ModifyChapters',
+            # 'remove_chapters_patterns': [],
+            # 'remove_sponsor_segments': [],
+            # 'sponsorblock_chapter_title': opts.sponsorblock_chapter_title,
+            # 'force_keyframes': opts.force_keyframes_at_cuts
+        })
+        postprocessors.append({
+            'key': 'FFmpegMetadata',
+            'add_chapters': True,
+            'add_metadata': False,
+        })
+
     if(ydl_vars['YDL_EXTRACT_AUDIO_FORMAT']):
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
@@ -132,7 +152,7 @@ def get_ydl_options(request_options):
         'cachedir': ydl_vars['YDL_CACHE_DIR']
     }
 
-    # TODO remove this temporary work around
+    # Sometimes you might want to pass in cookies
     cookiefile = '/youtube-dl/cookies.txt'
     if os.path.isfile(cookiefile):
         ydl_options['cookiefile'] = cookiefile
@@ -163,6 +183,7 @@ def fetch_metadata(url):
         ydl.params['extract_flat'] = 'in_playlist'
         return ydl.extract_info(url, download=False)
 
+
 def download(url, request_options, output, job_id):
     with yt_dlp.YoutubeDL(get_ydl_options(request_options)) as ydl:
         ydl.params['extract_flat'] = 'in_playlist'
@@ -173,7 +194,7 @@ def download(url, request_options, output, job_id):
         if '_type' in info and info['_type'] == 'playlist' \
                 and 'YDL_OUTPUT_TEMPLATE_PLAYLIST' in ydl_opts:
             ydl.params['outtmpl'] = ydl_opts['YDL_OUTPUT_TEMPLATE_PLAYLIST']
-        ydl.params['extract_flat']= False
+        ydl.params['extract_flat'] = False
 
         # 'YDL_OUTPUT_TEMPLATE': '/youtube-dl/%(title)s [%(id)s].%(ext)s',
         # 'YDL_OUTPUT_TEMPLATE_PLAYLIST': '/youtube-dl/%(playlist_title)s/%(title)s [%(id)s].%(ext)s',
