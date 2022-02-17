@@ -17,6 +17,7 @@ app_defaults = {
     'YDL_RAW_OPTIONS': {
         'ignoreerrors': True,
         # 'verbose': True,
+        'encoding': 'utf-8'
         # 'writethumbnail': True
         },
     # should we write NFO files adacent to the downloaded movies, used to pass Metadata to Kodi etc
