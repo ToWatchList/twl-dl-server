@@ -11,7 +11,7 @@ RUN apk add --no-cache ffmpeg tzdata curl wget gcc musl-dev
 
 WORKDIR /usr/src/app
 COPY ./requirements.txt ./youtube-dl-server.py ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 COPY ./ydl_server /usr/src/app/ydl_server
 WORKDIR /usr/src/app/ydl_server/static
@@ -25,8 +25,7 @@ RUN curl -s https://code.jquery.com/jquery-3.4.1.min.js > js/jquery.min.js && \
     mv tmp_bs/*/css/* css/ && \
     mv tmp_bs/*/js/* js/ && \
     rm -rf bootstrap-4.4.1-dist.zip tmp_bs && \
-    apk del curl wget && \
-    python -m pip install --upgrade pip
+    apk del curl wget
 
 WORKDIR /usr/src/app
 
