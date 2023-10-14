@@ -1,5 +1,5 @@
 app_defaults = {
-    "YDL_FORMAT": "bestvideo[vcodec!^=av01]+bestaudio/best",
+    "YDL_FORMAT": "bestvideo+bestaudio/best",
     "YDL_EXTRACT_AUDIO_FORMAT": None,
     "YDL_EXTRACT_AUDIO_QUALITY": None,
     "YDL_RECODE_VIDEO_FORMAT": None,
