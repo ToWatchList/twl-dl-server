@@ -16,51 +16,62 @@ from kodijson import Kodi, PLAYER_VIDEO
 app = Bottle()
 
 
-@app.route(['/', '/index'])
+@app.route(["/", "/index"])
 def front_index():
-    return template('./ydl_server/templates/index.html',
-            ydl_version=ydlhandler.get_ydl_version())
+    return template("./ydl_server/templates/index.html", ydl_version=ydlhandler.get_ydl_version())
 
-@app.route('/logs')
+
+@app.route("/logs")
 def front_logs():
-    return template('./ydl_server/templates/logs.html',
-            ydl_version=ydlhandler.get_ydl_version())
+    return template("./ydl_server/templates/logs.html", ydl_version=ydlhandler.get_ydl_version())
 
-@app.route('/finished')
+
+@app.route("/finished")
 def front_finished():
-    return template('./ydl_server/templates/finished.html',
-            ydl_version=ydlhandler.get_ydl_version())
+    return template("./ydl_server/templates/finished.html", ydl_version=ydlhandler.get_ydl_version())
 
 
-@app.route('/api/finished')
+@app.route("/api/finished")
 def api_list_finished():
-    root_dir = Path(app_vars['YDL_OUTPUT_TEMPLATE']).parent
-    matches = root_dir.glob('*')
+    root_dir = Path(app_vars["YDL_OUTPUT_TEMPLATE"]).parent
+    matches = root_dir.glob("*")
 
-    files = [{'name': f1.name,
-            'modified': f1.stat().st_mtime * 1000,
-            'children': sorted([{
-                'name': f2.name,
-                'modified': f2.stat().st_mtime * 1000
-                } for f2 in f1.iterdir() if not f2.name.startswith('.')] if f1.is_dir() else [], key=itemgetter('modified'), reverse=True)
-            } for f1 in matches if not f1.name.startswith('.')]
-
-    files = sorted(files, key=itemgetter('modified'), reverse=True)
-    return {
-        "success": True,
-        "files": files
+    files = [
+        {
+            "name": f1.name,
+            "modified": f1.stat().st_mtime * 1000,
+            "children": sorted(
+                [
+                    {"name": f2.name, "modified": f2.stat().st_mtime * 1000}
+                    for f2 in f1.iterdir()
+                    if not f2.name.startswith(".")
+                ]
+                if f1.is_dir()
+                else [],
+                key=itemgetter("modified"),
+                reverse=True,
+            ),
         }
+        for f1 in matches
+        if not f1.name.startswith(".")
+    ]
 
-@app.route('/api/finished/:filename#.*#')
+    files = sorted(files, key=itemgetter("modified"), reverse=True)
+    return {"success": True, "files": files}
+
+
+@app.route("/api/finished/:filename#.*#")
 def api_serve_finished_file(filename):
-    root_dir = Path(app_vars['YDL_OUTPUT_TEMPLATE']).parent
+    root_dir = Path(app_vars["YDL_OUTPUT_TEMPLATE"]).parent
     return static_file(filename, root=root_dir)
 
-@app.route('/static/:filename#.*#')
-def server_static(filename):
-    return static_file(filename, root='./ydl_server/static')
 
-@app.route('/api/downloads/stats', method='GET')
+@app.route("/static/:filename#.*#")
+def server_static(filename):
+    return static_file(filename, root="./ydl_server/static")
+
+
+@app.route("/api/downloads/stats", method="GET")
 def api_queue_size():
     db = JobsDB(readonly=True)
     jobs = db.get_all()
@@ -68,28 +79,30 @@ def api_queue_size():
         "success": True,
         "stats": {
             "queue": ydlhandler.queue.qsize(),
-            "pending": len([job for job in jobs if job['status'] == "Pending"]),
-            "running": len([job for job in jobs if job['status'] == "Running"]),
-            "completed": len([job for job in jobs if job['status'] == "Completed"]),
-            "failed": len([job for job in jobs if job['status'] == "Failed"])
-        }
+            "pending": len([job for job in jobs if job["status"] == "Pending"]),
+            "running": len([job for job in jobs if job["status"] == "Running"]),
+            "completed": len([job for job in jobs if job["status"] == "Completed"]),
+            "failed": len([job for job in jobs if job["status"] == "Failed"]),
+        },
     }
 
-@app.route('/api/downloads', method='GET')
+
+@app.route("/api/downloads", method="GET")
 def api_logs():
     db = JobsDB(readonly=True)
     return json.dumps(db.get_all())
 
-@app.route('/api/downloads', method='DELETE')
+
+@app.route("/api/downloads", method="DELETE")
 def api_logs_purge():
     jobshandler.put((Actions.PURGE_LOGS, None))
     return {"success": True}
 
 
-@app.route('/api/downloads', method='POST')
+@app.route("/api/downloads", method="POST")
 def api_queue_download():
     url = request.forms.get("url")
-    options = {'format': request.forms.get("format")}
+    options = {"format": request.forms.get("format")}
 
     if not url:
         return {"success": False, "error": "'url' query parameter omitted"}
@@ -100,10 +113,12 @@ def api_queue_download():
     print("Added url " + url + " to the download queue")
     return {"success": True, "url": url, "options": options}
 
-@app.route('/api/metadata', method='POST')
+
+@app.route("/api/metadata", method="POST")
 def api_metadata_fetch():
     url = request.forms.get("url")
     return ydlhandler.fetch_metadata(url)
+
 
 @app.route("/api/youtube-dl/update", method="GET")
 def ydl_update():
@@ -122,10 +137,10 @@ def twl_update():
 
 @app.route("/api/kodi/update", method="GET")
 def kodi_update():
-    if 'KODI_URL' not in app_vars or not app_vars['KODI_URL']:
+    if "KODI_URL" not in app_vars or not app_vars["KODI_URL"]:
         return {"success": False, "error": "KODI_URL not set (in environment)"}
 
-    kodi = Kodi(app_vars['KODI_URL'])
+    kodi = Kodi(app_vars["KODI_URL"])
     response = kodi.VideoLibrary.Scan()
     # Ideal response: {'id': 1, 'jsonrpc': '2.0', 'result': 'OK'}
 
@@ -133,7 +148,7 @@ def kodi_update():
         # TODO also clean library:
         kodi.VideoLibrary.Clean()
 
-    if response['result'] == "OK":
+    if response["result"] == "OK":
         return {"success": True}
     return {"success": False, "error": "bad response from Kodi", "details": response}
 
@@ -155,9 +170,7 @@ ydlhandler.resume_pending()
 
 app_vars = ChainMap(os.environ, app_defaults)
 
-app.run(host=app_vars['YDL_SERVER_HOST'],
-        port=app_vars['YDL_SERVER_PORT'],
-        debug=app_vars['YDL_DEBUG'])
+app.run(host=app_vars["YDL_SERVER_HOST"], port=app_vars["YDL_SERVER_PORT"], debug=app_vars["YDL_DEBUG"])
 ydlhandler.finish()
 jobshandler.finish()
 ydlhandler.join()

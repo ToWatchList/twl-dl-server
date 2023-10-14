@@ -22,15 +22,19 @@ queue = Queue()
 thread = None
 done = False
 
+
 def start():
     thread = Thread(target=worker)
     thread.start()
 
+
 def put(obj):
     queue.put(obj)
 
+
 def finish():
     done = True
+
 
 def worker():
     while not done:
@@ -39,11 +43,10 @@ def worker():
         jobshandler.put((Actions.SET_STATUS, (job.id, job.status)))
         if job.type == JobType.YDL_DOWNLOAD:
             output = io.StringIO()
-            stdout_thread = Thread(target=download_log_update,
-                    args=(job, output))
+            stdout_thread = Thread(target=download_log_update, args=(job, output))
             stdout_thread.start()
             try:
-                job.log = Job.clean_logs(download(job.url, {'format':  job.format}, output, job.id))
+                job.log = Job.clean_logs(download(job.url, {"format": job.format}, output, job.id))
                 job.status = Job.COMPLETED
             except Exception as e:
                 job.status = Job.FAILED
@@ -52,11 +55,10 @@ def worker():
             stdout_thread.join()
         elif job.type == JobType.TWL_DOWNLOAD:
             output = io.StringIO()
-            stdout_thread = Thread(target=download_log_update,
-                    args=(job, output))
+            stdout_thread = Thread(target=download_log_update, args=(job, output))
             stdout_thread.start()
             try:
-                job.log = Job.clean_logs(twldownload(job.url, {'format':  job.format}, output, job.id))
+                job.log = Job.clean_logs(twldownload(job.url, {"format": job.format}, output, job.id))
                 job.status = Job.COMPLETED
             except Exception as e:
                 job.status = Job.FAILED
@@ -73,101 +75,117 @@ def worker():
 
 def reload_youtube_dl():
     for module in list(sys.modules.keys()):
-        if 'youtube' in module or 'yt_dlp' in module:
+        if "youtube" in module or "yt_dlp" in module:
             importlib.reload(sys.modules[module])
 
 
 def update():
-    if os.environ.get('YDL_PYTHONPATH'):
-        command = ["pip", "install", "--no-cache-dir",
-                   "-t", os.environ.get('YDL_PYTHONPATH'),
-                   "--upgrade", os.environ.get('YOUTUBE_DL')]
+    if os.environ.get("YDL_PYTHONPATH"):
+        command = [
+            "pip",
+            "install",
+            "--no-cache-dir",
+            "-t",
+            os.environ.get("YDL_PYTHONPATH"),
+            "--upgrade",
+            os.environ.get("YOUTUBE_DL"),
+        ]
     else:
-        command = ["pip", "install", "--no-cache-dir", "--upgrade", os.environ.get('YOUTUBE_DL')]
+        command = ["pip", "install", "--no-cache-dir", "--upgrade", os.environ.get("YOUTUBE_DL")]
 
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
     if proc.wait() == 0:
         reload_youtube_dl()
-    return proc.returncode, str(out.decode('utf-8'))
+    return proc.returncode, str(out.decode("utf-8"))
 
 
 def get_ydl_options(request_options):
     request_vars = {
-        'YDL_EXTRACT_AUDIO_FORMAT': None,
-        'YDL_RECODE_VIDEO_FORMAT': None,
+        "YDL_EXTRACT_AUDIO_FORMAT": None,
+        "YDL_RECODE_VIDEO_FORMAT": None,
     }
 
-    requested_format = request_options.get('format', 'bestvideo')
+    requested_format = request_options.get("format", "bestvideo")
 
-    if requested_format in ['aac', 'flac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
-        request_vars['YDL_EXTRACT_AUDIO_FORMAT'] = requested_format
-    elif requested_format == 'bestaudio':
-        request_vars['YDL_EXTRACT_AUDIO_FORMAT'] = 'best'
-    elif requested_format in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'avi']:
-        request_vars['YDL_RECODE_VIDEO_FORMAT'] = requested_format
+    if requested_format in ["aac", "flac", "mp3", "m4a", "opus", "vorbis", "wav"]:
+        request_vars["YDL_EXTRACT_AUDIO_FORMAT"] = requested_format
+    elif requested_format == "bestaudio":
+        request_vars["YDL_EXTRACT_AUDIO_FORMAT"] = "best"
+    elif requested_format in ["mp4", "flv", "webm", "ogg", "mkv", "avi"]:
+        request_vars["YDL_RECODE_VIDEO_FORMAT"] = requested_format
 
     ydl_vars = ChainMap(request_vars, os.environ, app_defaults)
 
     postprocessors = []
 
-    if(ydl_vars['SPONSORBLOCK_MARK']):
-        postprocessors.append({
-            'key': 'SponsorBlock',
-            'categories': ydl_vars['SPONSORBLOCK_CATEGORIES'],
-            # Run this immediately after extraction is complete
-            'when': 'pre_process'
-        })
-        postprocessors.append({
-            'key': 'ModifyChapters',
-            # 'remove_chapters_patterns': [],
-            # 'remove_sponsor_segments': [],
-            # 'sponsorblock_chapter_title': opts.sponsorblock_chapter_title,
-            # 'force_keyframes': opts.force_keyframes_at_cuts
-        })
-        postprocessors.append({
-            'key': 'FFmpegMetadata',
-            'add_chapters': True,
-            'add_metadata': False,
-        })
+    if ydl_vars["SPONSORBLOCK_MARK"]:
+        postprocessors.append(
+            {
+                "key": "SponsorBlock",
+                "categories": ydl_vars["SPONSORBLOCK_CATEGORIES"],
+                # Run this immediately after extraction is complete
+                "when": "pre_process",
+            }
+        )
+        postprocessors.append(
+            {
+                "key": "ModifyChapters",
+                # 'remove_chapters_patterns': [],
+                # 'remove_sponsor_segments': [],
+                # 'sponsorblock_chapter_title': opts.sponsorblock_chapter_title,
+                # 'force_keyframes': opts.force_keyframes_at_cuts
+            }
+        )
+        postprocessors.append(
+            {
+                "key": "FFmpegMetadata",
+                "add_chapters": True,
+                "add_metadata": False,
+            }
+        )
 
-    if(ydl_vars['YDL_EXTRACT_AUDIO_FORMAT']):
-        postprocessors.append({
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': ydl_vars['YDL_EXTRACT_AUDIO_FORMAT'],
-            'preferredquality': ydl_vars['YDL_EXTRACT_AUDIO_QUALITY'],
-        })
+    if ydl_vars["YDL_EXTRACT_AUDIO_FORMAT"]:
+        postprocessors.append(
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": ydl_vars["YDL_EXTRACT_AUDIO_FORMAT"],
+                "preferredquality": ydl_vars["YDL_EXTRACT_AUDIO_QUALITY"],
+            }
+        )
 
-    if(ydl_vars['YDL_RECODE_VIDEO_FORMAT']):
-        postprocessors.append({
-            'key': 'FFmpegVideoConvertor',
-            'preferedformat': ydl_vars['YDL_RECODE_VIDEO_FORMAT'],
-        })
+    if ydl_vars["YDL_RECODE_VIDEO_FORMAT"]:
+        postprocessors.append(
+            {
+                "key": "FFmpegVideoConvertor",
+                "preferedformat": ydl_vars["YDL_RECODE_VIDEO_FORMAT"],
+            }
+        )
 
     ydl_options = {
-        'format': ydl_vars['YDL_FORMAT'],
-        'postprocessors': postprocessors,
-        'outtmpl': ydl_vars['YDL_OUTPUT_TEMPLATE'],
-        'download_archive': ydl_vars['YDL_ARCHIVE_FILE'],
-        'cachedir': ydl_vars['YDL_CACHE_DIR']
+        "format": ydl_vars["YDL_FORMAT"],
+        "postprocessors": postprocessors,
+        "outtmpl": ydl_vars["YDL_OUTPUT_TEMPLATE"],
+        "download_archive": ydl_vars["YDL_ARCHIVE_FILE"],
+        "cachedir": ydl_vars["YDL_CACHE_DIR"],
     }
 
     # Sometimes you might want to pass in cookies
-    cookiefile = '/youtube-dl/cookies.txt'
+    cookiefile = "/youtube-dl/cookies.txt"
     if os.path.isfile(cookiefile):
-        ydl_options['cookiefile'] = cookiefile
+        ydl_options["cookiefile"] = cookiefile
 
-    ydl_options = {**ydl_vars['YDL_RAW_OPTIONS'], **ydl_options}
+    ydl_options = {**ydl_vars["YDL_RAW_OPTIONS"], **ydl_options}
 
-    if ydl_vars['YDL_SUBTITLES_LANGUAGES']:
-        ydl_options['writesubtitles'] = True
-        if ydl_vars['YDL_SUBTITLES_LANGUAGES'] != 'all':
-            ydl_options['subtitleslangs'] = \
-                    ydl_vars['YDL_SUBTITLES_LANGUAGES'].split(',')
+    if ydl_vars["YDL_SUBTITLES_LANGUAGES"]:
+        ydl_options["writesubtitles"] = True
+        if ydl_vars["YDL_SUBTITLES_LANGUAGES"] != "all":
+            ydl_options["subtitleslangs"] = ydl_vars["YDL_SUBTITLES_LANGUAGES"].split(",")
         else:
-            ydl_options['allsubtitles'] = True
+            ydl_options["allsubtitles"] = True
 
     return ydl_options
+
 
 def download_log_update(job, stringio):
     while job.status == Job.RUNNING:
@@ -175,40 +193,40 @@ def download_log_update(job, stringio):
         jobshandler.put((Actions.SET_LOG, (job.id, job.log)))
         sleep(5)
 
+
 def fetch_metadata(url):
     stdout = io.StringIO()
     stderr = io.StringIO()
     info = None
-    with yt_dlp.YoutubeDL({'extract_flat': 'in_playlist'}) as ydl:
-        ydl.params['extract_flat'] = 'in_playlist'
+    with yt_dlp.YoutubeDL({"extract_flat": "in_playlist"}) as ydl:
+        ydl.params["extract_flat"] = "in_playlist"
         return ydl.extract_info(url, download=False)
 
 
 def download(url, request_options, output, job_id):
     with yt_dlp.YoutubeDL(get_ydl_options(request_options)) as ydl:
-        ydl.params['extract_flat'] = 'in_playlist'
+        ydl.params["extract_flat"] = "in_playlist"
         ydl_opts = ChainMap(os.environ, app_defaults)
         info = ydl.extract_info(url, download=False)
-        if 'title' in info and info['title']:
-            jobshandler.put((Actions.SET_NAME, (job_id, info['title'])))
-        if '_type' in info and info['_type'] == 'playlist' \
-                and 'YDL_OUTPUT_TEMPLATE_PLAYLIST' in ydl_opts:
-            ydl.params['outtmpl'] = ydl_opts['YDL_OUTPUT_TEMPLATE_PLAYLIST']
-        ydl.params['extract_flat'] = False
+        if "title" in info and info["title"]:
+            jobshandler.put((Actions.SET_NAME, (job_id, info["title"])))
+        if "_type" in info and info["_type"] == "playlist" and "YDL_OUTPUT_TEMPLATE_PLAYLIST" in ydl_opts:
+            ydl.params["outtmpl"] = ydl_opts["YDL_OUTPUT_TEMPLATE_PLAYLIST"]
+        ydl.params["extract_flat"] = False
 
         # 'YDL_OUTPUT_TEMPLATE': '/youtube-dl/%(title)s [%(id)s].%(ext)s',
         # 'YDL_OUTPUT_TEMPLATE_PLAYLIST': '/youtube-dl/%(playlist_title)s/%(title)s [%(id)s].%(ext)s',
 
-        if 'YDL_WRITE_NFO' in ydl_opts and ydl_opts['YDL_WRITE_NFO']:
+        if "YDL_WRITE_NFO" in ydl_opts and ydl_opts["YDL_WRITE_NFO"]:
             # write NFO file
             vidpath = Path(ydl.prepare_filename(info))
             nfopath = os.path.join(vidpath.parent, f"{vidpath.stem}.nfo")
             if not os.path.isfile(nfopath):
-                if 'upload_date' in info:
+                if "upload_date" in info:
                     # info['upload_date'] is usually a YYYYMMDD eg 20200906
-                    year = str(info['upload_date'])[:4]
-                    month = str(info['upload_date'])[4:6]
-                    day = str(info['upload_date'])[6:]
+                    year = str(info["upload_date"])[:4]
+                    month = str(info["upload_date"])[4:6]
+                    day = str(info["upload_date"])[6:]
 
                     with open(nfopath, "w") as nfoF:
                         # json.dump(info, nfoF)
@@ -217,17 +235,17 @@ def download(url, request_options, output, job_id):
 
                         nfoF.write("<musicvideo>\n")
 
-                        if 'title' in info and info['title']:
+                        if "title" in info and info["title"]:
                             nfoF.write(f"  <title>{info['title']}</title>\n")
                         else:
                             nfoF.write("  <title>Unknown Title</title>\n")
 
-                        if 'uploader_id' in info and info['uploader_id']:
+                        if "uploader_id" in info and info["uploader_id"]:
                             nfoF.write(f"  <showtitle>{info['uploader']}</showtitle>\n")
                         else:
                             nfoF.write("  <showtitle>Unknown Channel</showtitle>\n")
 
-                        if 'description' in info and info['description']:
+                        if "description" in info and info["description"]:
                             nfoF.write(f"  <plot>{info['description']}\n\nUpload Date: {info['upload_date']}</plot>\n")
                         else:
                             nfoF.write(f"  <plot>Upload Date: {info['upload_date']}</plot>\n")
@@ -259,7 +277,7 @@ class MLStripper(HTMLParser):
         self.fed.append(d)
 
     def get_data(self):
-        return ''.join(self.fed)
+        return "".join(self.fed)
 
 
 def strip_tags(html):
@@ -271,7 +289,7 @@ def strip_tags(html):
 def listFilesFromID(video_id, output_dir=None):
     if not output_dir:
         ydl_opts = ChainMap(os.environ, app_defaults)
-        output_dir = Path(ydl_opts['YDL_OUTPUT_TEMPLATE']).parent
+        output_dir = Path(ydl_opts["YDL_OUTPUT_TEMPLATE"]).parent
 
     # TODO how could we be more selective here using these known extensions
     # videoExtensions = ['avi', 'webm', 'ogg', 'mkv', 'mp4', 'm4v', 'flv', 'mov']
@@ -281,7 +299,7 @@ def listFilesFromID(video_id, output_dir=None):
 
     filteredMatches = []
     for filematch in glob.glob(os.path.join(output_dir, f"*{video_id}*")):
-        if filematch.lower().endswith('.part'):
+        if filematch.lower().endswith(".part"):
             # This is an incomplete download, delete it
             os.remove(filematch)
             continue
@@ -294,22 +312,22 @@ def twldownload(url, request_options, output, job_id):
     assert TWL_API_TOKEN != "unset", "ERROR: TWL_API_TOKEN should be set in env (and is not)"
 
     ydl_opts = ChainMap(os.environ, app_defaults)
-    lookbackStr = ydl_opts['TWL_LOOKBACK_TIME_STRING']
-    if request_options and 'format' in request_options and request_options['format']:
+    lookbackStr = ydl_opts["TWL_LOOKBACK_TIME_STRING"]
+    if request_options and "format" in request_options and request_options["format"]:
         # use 'format' as 'TWL_LOOKBACK_TIME_STRING' here
-        lookbackStr = request_options['format']
+        lookbackStr = request_options["format"]
 
     r = httpx.get(f"https://towatchlist.com/api/v1/marks?since={lookbackStr}&uid={TWL_API_TOKEN}")
     r.raise_for_status()
-    myMarks = r.json()['marks']
+    myMarks = r.json()["marks"]
 
-    output_dir = Path(ydl_opts['YDL_OUTPUT_TEMPLATE']).parent
-    with open(os.path.join(output_dir, '.twl.json'), 'w') as filehandle:
+    output_dir = Path(ydl_opts["YDL_OUTPUT_TEMPLATE"]).parent
+    with open(os.path.join(output_dir, ".twl.json"), "w") as filehandle:
         json.dump(myMarks, filehandle)
 
     downloadQueueAdd = 0
     removedFiles = 0
-    if 'YDL_WRITE_NFO' in ydl_opts and ydl_opts['YDL_WRITE_NFO']:
+    if "YDL_WRITE_NFO" in ydl_opts and ydl_opts["YDL_WRITE_NFO"]:
         targetNumberOfFiles = 2
     else:
         targetNumberOfFiles = 1
@@ -317,16 +335,16 @@ def twldownload(url, request_options, output, job_id):
     for i in range(len(myMarks)):
         # set some values we'll use below
         mmeta = {}  # mark metadata dict
-        mmeta['videoURL'] = myMarks[i]['Mark']['source_url']
-        mmeta['title'] = myMarks[i]['Mark']['title']
-        mmeta['video_id'] = myMarks[i]['Mark']['video_id']
-        mmeta['channel_title'] = myMarks[i]['Mark']['channel_title']
-        mmeta['duration'] = int(myMarks[i]['Mark']['duration']) / 60.0
-        mmeta['created'] = myMarks[i]['Mark']['created']
+        mmeta["videoURL"] = myMarks[i]["Mark"]["source_url"]
+        mmeta["title"] = myMarks[i]["Mark"]["title"]
+        mmeta["video_id"] = myMarks[i]["Mark"]["video_id"]
+        mmeta["channel_title"] = myMarks[i]["Mark"]["channel_title"]
+        mmeta["duration"] = int(myMarks[i]["Mark"]["duration"]) / 60.0
+        mmeta["created"] = myMarks[i]["Mark"]["created"]
 
-        existingFiles = listFilesFromID(mmeta['video_id'], output_dir=output_dir)
+        existingFiles = listFilesFromID(mmeta["video_id"], output_dir=output_dir)
 
-        if (myMarks[i]['Mark']['watched']) or (myMarks[i]['Mark']['delflag']):
+        if (myMarks[i]["Mark"]["watched"]) or (myMarks[i]["Mark"]["delflag"]):
             # it's been marked as watched, delete the local copy
             for filename in existingFiles:
                 os.remove(filename)
@@ -338,17 +356,12 @@ def twldownload(url, request_options, output, job_id):
             continue
 
         try:  # a bit more parsing for Kodi
-            mmeta['description'] = strip_tags(myMarks[i]['Mark']['comment'])
+            mmeta["description"] = strip_tags(myMarks[i]["Mark"]["comment"])
         except:
-            mmeta['description'] = '-Failed to parse-'
+            mmeta["description"] = "-Failed to parse-"
 
         downloadQueueAdd += 1
-        job = Job(mmeta['title'],
-                  Job.PENDING,
-                  "",
-                  JobType.YDL_DOWNLOAD,
-                  ydl_opts['YDL_FORMAT'],
-                  mmeta['videoURL'])
+        job = Job(mmeta["title"], Job.PENDING, "", JobType.YDL_DOWNLOAD, ydl_opts["YDL_FORMAT"], mmeta["videoURL"])
         jobshandler.put((Actions.INSERT, job))
 
     if removedFiles > 0:
@@ -361,19 +374,22 @@ def twldownload(url, request_options, output, job_id):
 def resume_pending():
     db = JobsDB(readonly=False)
     jobs = db.get_all()
-    not_endeds = [job for job in jobs if job['status'] == "Pending" or job['status'] == 'Running']
+    not_endeds = [job for job in jobs if job["status"] == "Pending" or job["status"] == "Running"]
     for pending in not_endeds:
         if int(pending["type"]) == JobType.YDL_UPDATE:
             jobshandler.put((Actions.SET_STATUS, (pending["id"], Job.FAILED)))
         else:
-            job = Job(pending["name"], Job.PENDING, "Queue stopped",
-                    int(pending["type"]), pending["format"], pending["url"])
+            job = Job(
+                pending["name"], Job.PENDING, "Queue stopped", int(pending["type"]), pending["format"], pending["url"]
+            )
             job.id = pending["id"]
             jobshandler.put((Actions.RESUME, job))
+
 
 def join():
     if thread is not None:
         return thread.join()
+
 
 def get_ydl_version():
     return yt_dlp.version.__version__
