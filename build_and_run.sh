@@ -25,7 +25,7 @@ localPath='/Users/nick/Documents/ToWatchList/twl-dl-server/ytdl-test'
 docker run -d --name youtube-dl \
   -v ${localPath}:/youtube-dl \
   -p 8080:8080 \
-  --env TWL_API_TOKEN=`cat .TWL_Token` \
+  --env TWL_API_TOKEN="$(cat .TWL_Token)" \
   --env TWL_LOOKBACK_TIME_STRING=-3min \
   --env YDL_WRITE_NFO=True \
   --env KODI_URL='http://10.0.1.54:8080/jsonrpc' \
